@@ -39,6 +39,8 @@ class Flags:
         new: typing.Optional[bool] = None,
         cont: typing.Optional[str] = None,
         terminal: typing.Optional[str] = None,
+        default_input: typing.Optional[str] = None,
+        response_type: typing.Optional[str] = None,
     ):
         self.model = model
         self.file = file
@@ -51,6 +53,8 @@ class Flags:
         self.new = new
         self.cont = cont
         self.terminal = terminal
+        self.default_input = default_input
+        self.response_type = response_type
 
     def __str__(self):
         help_str = ""
@@ -62,12 +66,16 @@ class Flags:
             help_str += f"Per file: {self.perfile}\n"
         if self.allfiles is not None and self.allfiles != "":
             help_str += f"All files: {self.allfiles}\n"
+        if self.default_input is not None and self.default_input != "":
+            help_str += f"Default input: {self.default_input}\n"
         if self.file_ext is not None and self.file_ext != "":
             help_str += f"File ext: {self.file_ext}\n"
-        if self.rag is not None and self.rag!= False:
+        if self.rag is not None and self.rag != False:
             help_str += f"RAG: {str(self.rag)}\n"
         if self.yaml is not None and self.yaml != "":
             help_str += f"YAML: {self.yaml}\n"
+        if self.response_type is not None and self.response_type != "":
+            help_str += f"Response type: {self.response_type}\n"
         if self.out is not None and self.out != "":
             help_str += f"Out: {self.out}\n"
         if self.new is not None and self.new != False:
@@ -124,6 +132,14 @@ def dictionaryToFlags(flags: dict) -> Flags:
         terminal = str(flags["terminal"])
     else:
         terminal = ""
+    if "default_input" in flags:
+        default_input = str(flags["default_input"])
+    else:
+        default_input = ""
+    if "response_type" in flags:
+        response_type = str(flags["response_type"])
+    else:
+        response_type = ""
     flags = Flags(
         model=model,
         file=file,
@@ -136,6 +152,8 @@ def dictionaryToFlags(flags: dict) -> Flags:
         new=new,
         cont=cont,
         terminal=terminal,
+        default_input=default_input,
+        response_type=response_type,
     )
     return flags
 
@@ -143,15 +161,15 @@ def dictionaryToFlags(flags: dict) -> Flags:
 class Step:
     def __init__(
         self,
-        name: str,
-        function: typing.Optional[str],
         prompt: typing.Optional[str],
+        name: typing.Optional[str] = None,
+        function: typing.Optional[str] = None,
         flags: typing.Optional[Flags] = None,
         description: typing.Optional[str] = None,
     ):
+        self.prompt = prompt
         self.name = name
         self.function = function
-        self.prompt = prompt
         self.flags = flags
         self.description = description
 
@@ -186,9 +204,9 @@ class ReadSteps:
                     flags = None
                 # Using .get let's you specify optional keys
                 step_item = Step(
-                    name=item["name"],
-                    function=item["function"],
                     prompt=item["prompt"],
+                    name=item.get("name", None),
+                    function=item.get("function", None),
                     flags=flags,
                     description=item.get("description", None),
                 )
@@ -251,7 +269,7 @@ class TaskConfigFile:
         self.tasks = tasks
 
     def __str__(self):
-        output =  []
+        output = []
         for item in self.tasks:
             output.append(str(item))
         return str(output)
@@ -273,7 +291,10 @@ class TaskConfigFile:
 class ReadTaskConfig:
     # Tries to ingest a task configuration file and validate its keys.
     def __init__(
-        self, yaml_path: str = os.path.join(get_project_path(), "tasks/release-notes-task.yaml")
+        self,
+        yaml_path: str = os.path.join(
+            get_project_path(), "tasks/release-notes-task.yaml"
+        ),
     ):
         self.yaml_path = yaml_path
         try:
@@ -328,9 +349,7 @@ class ReadTaskConfig:
                         break
                 # Exits if product is not found
                 if not match:
-                    logging.error(
-                        f"The task {task} does not exist in {self.yaml_path}"
-                    )
+                    logging.error(f"The task {task} does not exist in {self.yaml_path}")
                     return sys.exit(1)
             tasks_file = TaskConfigFile(tasks=tasks)
             return tasks_file

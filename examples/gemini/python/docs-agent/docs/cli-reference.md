@@ -258,6 +258,20 @@ For example:
 agent helpme write a concept doc covering all features in this project? --allfiles ~/my-project --new
 ```
 
+### Ask the model to print the output in JSON
+
+The command below prints the output from the model in JSON format:
+
+```sh
+agent helpme <REQUEST> --response_type json
+```
+
+For example:
+
+```sh
+agent helpme how do I cook pasta? --response_type json
+```
+
 ### Ask the model to run a pre-defined chain of prompts
 
 The command below runs a task (a sequence of prompts) defined in
@@ -273,8 +287,45 @@ For example:
 agent runtask --task DraftReleaseNotes
 ```
 
+### View the list of available Docs Agent tasks
+
 To see the list of all tasks available in your project, run
-`agent runtask` without any arguments.
+`agent runtask` without any arguments:
+
+```sh
+agent runtask
+```
+
+### Ask the model to run a task using custom input
+
+If a task script has a `<INPUT>` placeholder, you can provide
+a custom input string to the task:
+
+```sh
+agent runtask --task <TASK> --custom_input <INPUT_STRING>
+```
+
+For example:
+
+```sh
+agent runtask --task IndexPageGenerator --custom_input ~/my_example/docs/development/
+```
+
+### Ask the model to print the output in plain text
+
+By default, the `agent runtask` command uses Python's Rich console
+to format its output. You can disable it by using the `--plaintext`
+flag:
+
+```sh
+agent runtask --task <TASK> --plaintext
+```
+
+For example:
+
+```sh
+agent runtask --task DraftReleaseNotes --plaintext
+```
 
 ## Managing online corpora
 
